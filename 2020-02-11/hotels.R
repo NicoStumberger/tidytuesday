@@ -7,12 +7,17 @@ hotels %>%
         geom_bar(alpha = 0.6) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
+# !!!
 # Las canceladas son mayormente del City Hotel
 hotels %>% 
         ggplot(aes(factor(is_canceled))) +
         geom_bar(aes(fill = hotel))
 
+
+# !!!
 # City Hotel es el que tiene un problema mayor con las canceladas
+# Casi la mitad de las reservas se cancelan en el City Hotel.
+# Mientras que en Resort Hotel, aprox el 75% no se cancelan.
 hotels %>% 
         ggplot(aes(hotel)) +
         geom_bar(aes(fill = factor(hotels$is_canceled)))
@@ -39,6 +44,18 @@ hotels %>%
         ggplot(aes(arrival_date_month)) + #cómo ordenar los meses?
         geom_bar(alpha = 0.5) +
         coord_flip()
+# Muchas reservas son en verano porque 2015 tiene datos desde julio
+# y 2017 tiene datos hasta agosto. Entonces hay 3 julio y agosto
+# mientras que para los otros meses hay solo 2 años.
+
+hotels %>% 
+        filter(arrival_date_year == 2016) %>% 
+        mutate(arrival_date_month = factor(arrival_date_month, 
+                                           levels = month.name)) %>%
+        ggplot(aes(arrival_date_month)) +
+        geom_bar(alpha = 0.5) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+                       
 
 # Las reservas son claramente estacionales
 hotels %>% 
@@ -49,46 +66,13 @@ hotels %>%
 # un poco más de mediados de 2017. 
 # 2016 es el único año completo
 
-# El día del mes no me dice mucho..
-hotels %>% 
-        ggplot(aes(arrival_date_day_of_month)) +
-        geom_bar(alpha = 0.5)
 # Deberia crear un nuevo feature de fecha para incluir dummy finde vs no finde:
 # q el finde sea noche de viernes y sabado.
-
-
-hotels %>% 
-        ggplot(aes(adults)) +
-        geom_bar()
 
 # Country convertir a país real
 # Sumar children y babies
 # Crear una dummy para single o acompañado
 
-# No tiene muchos clientes frecuentes
-hotels %>% 
-        ggplot(aes(factor(is_repeated_guest))) +
-        geom_bar()
+library(skimr)
 
-hotels %>% 
-        ggplot(aes(previous_cancellations)) +
-        geom_histogram()
-
-# No me dice nada
-hotels %>% 
-        ggplot(aes(factor(is_canceled), booking_changes)) +
-        geom_boxplot() +
-        scale_y_log10()
-
-# No me dice nada...
-hotels %>% 
-        ggplot(aes(factor(is_canceled))) +
-        geom_bar() +
-        facet_wrap(~ deposit_type)
-
-# Demasiados, habría que agruparlos..
-hotels %>% 
-        ggplot(aes(company)) +
-        geom_bar()
-
-
+skim(hotels)
