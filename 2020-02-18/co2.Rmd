@@ -1,0 +1,145 @@
+---
+title: "Tidytuesday Co2"
+date: "2020-02-18"
+output: html_notebook
+---
+
+```{r install, eval = FALSE}
+install.packages("skimr")
+```
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE) 
+knitr::opts_chunk$set(fig.width=8, fig.asp=0.618)  
+
+library(tidyverse)
+library(skimr)
+```
+
+
+
+```{r}
+food_consumption <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-18/food_consumption.csv')
+
+```
+
+### Skim
+
+Esto deberia ser lo primero que haga...
+```{r}
+skim(food_consumption)
+```
+
+### Varianzas
+
+Veamos un poco como varian las variables
+
+Como se distribuye el consumo per capita?
+
+
+```{r}
+food_consumption$consumption %>% 
+        mean()
+
+
+food_consumption %>% 
+        ggplot(aes(consumption)) +
+        geom_histogram(aes(y = ..density..), alpha = 0.6) +
+        scale_x_log10(labels = scales::comma) +
+        geom_density(color = "blue") +
+        geom_rug()
+```
+
+Como varian las emisiones de Co2?
+```{r}
+food_consumption %>% 
+        ggplot(aes(co2_emmission)) +
+        geom_histogram(aes(y = ..density..), alpha = 0.6) +
+        scale_x_log10(labels = scales::comma) +
+        geom_density(color = "blue") +
+        geom_rug() +
+        geom_vline(xintercept = mean(food_consumption$co2_emmission), size = 1, color = "black") +
+        annotate(geom = "text", 
+                 x = mean(food_consumption$co2_emmission) + 1,
+                 y = 0.6,
+                 label = mean(food_consumption$co2_emmission)) # sacale decimales
+        
+```
+
+### Covarianzas
+
+Cuales son las categorias de comidas?
+```{r}
+food_consumption %>% 
+        distinct(food_category)
+```
+
+Como varia el consumo por categoria?
+```{r}
+food_consumption %>% 
+        ggplot(aes(reorder(food_category, consumption), consumption)) +
+        geom_boxplot() +
+        scale_y_log10(labels = scales::comma) +
+        coord_flip()
+```
+
+En promedio, lo que mas consume la gente son productos lacteos. mas de 100 kg por persona por anio.
+
+Como varia la emision por producto?
+
+```{r}
+food_consumption %>% 
+        ggplot(aes(reorder(food_category, co2_emmission), co2_emmission)) +
+        geom_boxplot() +
+        scale_y_log10(labels = scales::comma) +
+        coord_flip()
+```
+
+Lo que mas emision per capita genera es el beef, soja lo que menos..
+
+Podria armar un cleveland dotplot con emision y consumo por producto...
+
+Veamos los paises:
+
+```{r}
+food_consumption %>% 
+        ggplot(aes(reorder(country, consumption), consumption)) +
+        geom_boxplot() +
+        scale_y_log10() +
+        coord_flip()
+```
+
+Son demasiados paises, deberia filtrar el top 10 o bien agrupar por region...
+
+```{r}
+food_consumption %>% 
+        group_by(country) %>% 
+        summarise(mean_cons = mean(consumption),
+                  mean_co2 = mean(co2_emmission)) %>% 
+        arrange(desc(mean_co2))
+```
+
+Argentina es el ppal emisor de co2 por estos productos
+
+Estaria bueno aglutinarlo por region porque es dificl analizar tantas categorias
+
+Veamos consumo vs emision
+
+
+```{r}
+food_consumption %>% 
+        ggplot(aes(consumption, co2_emmission, color = food_category)) +
+        geom_jitter()
+```
+Esto es tan raro que parece super arbitrario....habria que chequear la metodologia de como calcularon la emision per capita...
+
+Me gustaria hacer un cleveland dotplot por producto y otro por pais, mostrando los promedios de consumo y emision.
+
+Por otro lado, ver la posibilidad de agregar los paies por regiones y los productos por origen animal y vegetal.
+
+Tomar argentina y analizar sus productos.
+
+Tomar Beef y analizar sus paises
+
+
