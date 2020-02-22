@@ -48,7 +48,12 @@ food_consumption %>%
         geom_histogram(aes(y = ..density..), alpha = 0.6) +
         scale_x_log10(labels = scales::comma) +
         geom_density(color = "blue") +
-        geom_rug()
+        geom_rug() +
+        geom_vline(xintercept = mean(food_consumption$consumption), size = 1, color = "black") +
+        annotate(geom = "text",
+                x = mean(food_consumption$consumption) + 20,
+                 y = 0.55,
+                 label = round(mean(food_consumption$consumption), digits = 2))
 ```
 
 Como varian las emisiones de Co2?
@@ -61,9 +66,9 @@ food_consumption %>%
         geom_rug() +
         geom_vline(xintercept = mean(food_consumption$co2_emmission), size = 1, color = "black") +
         annotate(geom = "text", 
-                 x = mean(food_consumption$co2_emmission) + 1,
+                 x = mean(food_consumption$co2_emmission) + 50,
                  y = 0.6,
-                 label = mean(food_consumption$co2_emmission)) # sacale decimales
+                 label = round(mean(food_consumption$co2_emmission), digits = 2)) # sacale decimales
         
 ```
 
@@ -135,6 +140,47 @@ food_consumption %>%
 Esto es tan raro que parece super arbitrario....habria que chequear la metodologia de como calcularon la emision per capita...
 
 Me gustaria hacer un cleveland dotplot por producto y otro por pais, mostrando los promedios de consumo y emision.
+
+```{r}
+mean_food <- food_consumption %>% 
+        group_by(food_category) %>% 
+        summarise(mean_consum = mean(consumption),
+                  mean_co2 = mean(co2_emmission)) %>% 
+        arrange(desc(mean_co2))
+
+mean_food %>% 
+        ggplot(aes(reorder(food_category, mean_co2))) +
+        geom_point(aes(y = mean_consum, color = "Consumption"), size = 2) +
+        geom_point(aes(y = mean_co2, color = "Co2 emission"), size = 2) +
+        geom_segment(aes(xend = food_category, y = mean_consum, yend = mean_co2), color = "grey") +
+        scale_y_log10() +
+        coord_flip()
+```
+
+
+```{r}
+```
+
+
+```{r}
+mean_food_gather <- mean_food %>% 
+        gather(key = "category", 
+               value = "kg/per/year", 
+               mean_consum, mean_co2)
+
+mean_food_gather %>% 
+        ggplot(aes(reorder(food_category, `kg/per/year`), `kg/per/year`)) + 
+        geom_bar(stat = "identity") +
+        facet_wrap(~category) +
+        coord_flip()
+```
+Buenisimo. Ahora sumarle el color basado en el origen del producto (animal vs vegetal)
+
+
+```{r}
+```
+
+
 
 Por otro lado, ver la posibilidad de agregar los paies por regiones y los productos por origen animal y vegetal.
 
