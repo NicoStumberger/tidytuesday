@@ -1,0 +1,367 @@
+Co2 & Food consumption with gganimate
+================
+Nicolas Stumberger
+
+Este es un script en contrucción. Tiene como objetivo armar un gráfico
+animado con gganimate con un dataset provisto por la comunidad de
+tidytuesday y setear un output con parámetros ideales para Instagram o
+Tweeter.
+
+La animación está inspirada por una publicación de Brian Mwangi en
+towardsdatascience.com:
+(<https://towardsdatascience.com/how-to-create-plots-with-beautiful-animation-using-gganimate-912f4279b073>)
+
+### Disclaimer hasta ahora
+
+  - Estoy seguro que el código tiene mucho para mejorar, por lo que si
+    encontraste algún error o algo que lo haga menos “verbose”, estoy
+    abierto a recibir sugerencias.
+  - Aprendo, principalmente, leyendo contenido en inglés, por lo que
+    puede ser que encuentres mucho espaninglish entremezclado en el
+    código. De hecho, el título y el gráfico está en inglés porque el
+    destinatario es la comunidad mundial de \#tidytuesday.
+  - El script está en construcción.
+  - Los outputs los guardo en otra carpeta aparte (figures), dentro de
+    este repo, porque renderizarlo acá, me hacía un html demasiado
+    grande como para que github lo tolere.
+
+### 1\. Carga de librerías
+
+``` r
+knitr::opts_chunk$set(echo = TRUE)
+
+## Carga de librerias
+
+library(tidyverse) # para todo
+library(gganimate) # para animar los gráficos
+library(gifski) # para renderizar los graficos animados y poder guardarlos como GIF
+library(av) # para renderizar los gáficos animados y poder guardarlos como mp4
+```
+
+### 2\. Lectura de datos
+
+``` r
+# tidy tuesday data
+food_consumption <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-18/food_consumption.csv')
+```
+
+    ## Parsed with column specification:
+    ## cols(
+    ##   country = col_character(),
+    ##   food_category = col_character(),
+    ##   consumption = col_double(),
+    ##   co2_emmission = col_double()
+    ## )
+
+### 3\. Data wrangling
+
+``` r
+mean_food <- food_consumption %>% 
+        group_by(food_category) %>% 
+        summarise(mean_consum = mean(consumption),
+                  mean_co2 = mean(co2_emmission)) %>% 
+        arrange(desc(mean_co2))
+
+mean_food
+```
+
+    ## # A tibble: 11 x 3
+    ##    food_category            mean_consum mean_co2
+    ##    <chr>                          <dbl>    <dbl>
+    ##  1 Beef                          12.1    374.   
+    ##  2 Milk - inc. cheese           126.     179.   
+    ##  3 Lamb & Goat                    2.60    91.1  
+    ##  4 Pork                          16.1     57.1  
+    ##  5 Rice                          29.4     37.6  
+    ##  6 Fish                          17.3     27.6  
+    ##  7 Poultry                       21.2     22.8  
+    ##  8 Wheat and Wheat Products      71.5     13.6  
+    ##  9 Eggs                           8.16     7.50 
+    ## 10 Nuts inc. Peanut Butter        4.14     7.32 
+    ## 11 Soybeans                       0.861    0.387
+
+A formato tidy…
+
+``` r
+# Para convertirlo en un formato tidy
+
+mean_food_gather <- mean_food %>% 
+        gather(key = "category", 
+               value = "kg_per_year", 
+               mean_consum, mean_co2)
+
+mean_food_gather <- mean_food_gather %>% 
+        janitor::clean_names()
+```
+
+Crear una nueva variable Rank
+
+``` r
+#* 1 ensures we have non-integer ranks while sliding
+mean_food_gather <- mean_food_gather %>% 
+        group_by(category) %>% 
+        mutate(rank = min_rank(kg_per_year) * 1) %>%
+                       ungroup()
+
+# Creo una variable mas legible para que cuando lo grafique, se vea bien
+mean_food_gather <- mean_food_gather %>% 
+        mutate(category2 = if_else(category == "mean_consum", 
+                                   "Consumption", 
+                                   "Co2 Emission"))
+```
+
+## Visualización
+
+### 1\. Versión 1
+
+Esta es una versión animada en donde cada categoría mantiene su
+ubicación y lo que cambia es el largo de cada barra.
+
+#### 1.1. Static plot
+
+``` r
+# Aca ploteo food category. En el ejemplo Brian plotea el rank y le pone la etiqueta de food category. 
+# Voy a intentar replicar eso mas abajo.
+static_plot2 <- mean_food_gather %>% 
+        ggplot(aes(reorder(food_category, kg_per_year),
+                   kg_per_year, 
+                   fill = food_category, 
+                   color = food_category)) +
+        geom_bar(stat = "identity", alpha = 0.8) +
+        # esto crea labels del mismo color que la data:
+        geom_text(aes(y = 0, 
+                      # Para que el texto no se extienda hacia el margen y desaparezca:
+                      label = if_else(lengths(strsplit(mean_food_gather$food_category, " ")
+                                              ) > 1,
+                                      paste0(word(mean_food_gather$food_category, 1),
+                                             " ", "\n", " & ",
+                                             word(mean_food_gather$food_category, -1), " "),
+                                      paste0(word(mean_food_gather$food_category, 1)," ")
+                                      )
+                      ),
+                  vjust = 0.2,
+                  hjust = 1) +
+        geom_text(aes(y = kg_per_year, 
+                      label = paste(" ", round(kg_per_year, 1))),
+                  hjust = -0.2) +
+        coord_flip(clip = "off", expand = TRUE) +
+        guides(fill = FALSE, color = FALSE) +
+        theme_minimal() +
+        theme(plot.margin = margin(100, 110, 100, 110), # para stories
+              axis.ticks.y = element_blank(),
+              axis.text.y = element_blank(),
+              plot.title = element_text(size = 25,
+                                        hjust = 0.5,
+                                        face = "bold",
+                                        color = "grey"),
+              plot.subtitle = element_text(size = 12,
+                                           hjust = 0.5,
+                                           face = "italic",
+                                           color = "grey"),
+              plot.caption = element_text(face = "italic",
+                                          color = "grey")) +
+        labs(x = "")
+```
+
+#### 1.2. Animación
+
+``` r
+anim_plot2 <- static_plot2 +
+        # esto es como un facet wrap
+        transition_states(states = category2,
+                          transition_length = 4,
+                          state_length = 1) +
+        # para que se vea mas smooth en cada wrap
+        ease_aes("cubic-in-out") +
+        labs(title = "{closest_state}",
+             subtitle = "Kilograms per Person per Year of Food Categories",
+             y = "World Mean of Kilograms per Person per Year",
+             caption = "Data source: nu3.de")
+```
+
+#### 1.3. Rendering de prueba
+
+``` r
+animate(anim_plot2,
+        100,
+        fps = 10,
+        duration = 4,
+        width = 950,
+        height = 750,
+        renderer = gifski_renderer()
+        )
+```
+
+![](README_files/figure-gfm/unnamed-chunk-8-1.gif)<!-- -->
+
+### 2\. Versión 2
+
+En esta versión utilizo una nueva variable (rank) para la animación, con
+el objetivo de que en cada estado las categorías y sus barras se muevan
+al ranking en el que deben estar en función a cada estado.
+
+#### 2.1. Static plot
+
+``` r
+# Utilizo rank para que le orden sea por el ranking dado en 
+static_plot3 <- mean_food_gather %>% 
+        ggplot(aes(as_factor(rank), 
+                   kg_per_year, 
+                   group = food_category,
+                   color = food_category, 
+                   fill = food_category)) +
+        geom_bar(stat = "identity", alpha = 0.8) +
+        # esto crea labels del mismo color que la data:
+        # sep texto en 2
+        geom_text(aes(y = 0, 
+                      label = if_else(
+                              lengths(strsplit(mean_food_gather$food_category, 
+                                               " ")) > 1,
+                              paste0(word(mean_food_gather$food_category, 1),
+                                     " ", "\n", "& ",
+                                     word(mean_food_gather$food_category, -1), 
+                                     " "),
+                              paste0(word(mean_food_gather$food_category, 1),
+                                     " "))
+                      ), 
+                  vjust = "center",
+                  hjust = 1) +
+        geom_text(aes(y = kg_per_year, 
+                      label = paste(" ", round(kg_per_year, 1))),
+                  hjust = -0.2) +
+        coord_flip(clip = "off", expand = TRUE) +
+        guides(fill = FALSE, color = FALSE) +
+        theme_minimal() +
+        # margenes para formato vertical (Tweeter o IG story): margin(100, 40, 100, 40)
+        # margenes para formato publicacion (Tweeter o IG feed): margin(5.5, 40, 5.5, 40)
+        theme(plot.margin = margin(5.5, 40, 5.5, 40), 
+              axis.ticks.y = element_blank(),
+              axis.text.y = element_blank(),
+              plot.title = element_text(size = 25,
+                                        hjust = 0.5,
+                                        face = "bold",
+                                        color = "grey"),
+              plot.subtitle = element_text(size = 12,
+                                           hjust = 0.5,
+                                           face = "italic",
+                                           color = "grey"),
+              plot.caption = element_text(face = "italic",
+                                          color = "grey")) +
+        labs(x = "")
+```
+
+#### 2.2. Animación
+
+``` r
+anim_plot3 <- static_plot3 +
+        # esto es como un facet wrap
+        transition_states(states = category2,
+                          transition_length = 1.5,
+                          state_length = 1,
+                          wrap = TRUE) +
+        # para que se vea mas smooth en cada wrap
+        ease_aes("cubic-in-out") +
+        labs(title = "{closest_state}",
+             subtitle = "Kilograms per Person per Year of Food Categories",
+             y = "World Mean of Kilograms per Person per Year",
+             caption = "Data source: nu3.de")
+```
+
+#### 2.3. Rendering de prueba
+
+``` r
+animate(anim_plot3,
+        100,
+        fps = 10,
+        duration = 4,
+        width = 950,
+        height = 750,
+        renderer = gifski_renderer()
+        )
+```
+
+![](README_files/figure-gfm/unnamed-chunk-11-1.gif)<!-- -->
+
+### 3\. Para publicar en alta calidad en IG:
+
+Para publicar en Instagram, los graficos animados deben ser videos,
+porque por el momento IG no deja subir GIFs.
+
+Para publicar como stories en Instagram, las proporciones maximas pueden
+ser de 1080 x 1920. Hay que dejar un margen superior y inferior de 250
+cada uno.
+
+Para hacerlo como publicacion dentro del feed, las proporciones pueden
+ser 1080 x 1080.
+
+``` r
+# Creo variables con las proporciones de ancho y alto
+story_w <- 1080
+story_h <- 1920
+publ_w1 <- 1080
+publ_h1 <- 1080
+```
+
+#### 3.1. Rendering
+
+##### 3.1.1. versión 2
+
+###### A. Render para story en video
+
+mp4: margenes utilizados 100, 40, 100, 40
+
+``` r
+animate(anim_plot3,
+        nframes = 200,
+        width = story_w, 
+        height = story_h,
+        res = 200,
+        duration = 15, 
+        renderer = av_renderer("figures/tidy_food.mp4"))
+```
+
+###### B. Render para gif en formato vertical
+
+GIF: margenes utilizados 100, 40, 100, 40
+
+``` r
+animate(anim_plot3,
+        width = story_w, 
+        height = story_h,
+        res = 200,
+        duration = 4, #con esto hag el gif mas rapido, pero no se como hacerlo en av
+        renderer = gifski_renderer("figures/tidy_food.gif"))
+```
+
+###### C. Render para publicación en formato de video 1x1 para feed IG.
+
+Margins test: 5.5, 40, 5.5, 40
+
+``` r
+animate(anim_plot3,
+        nframes = 200,
+        width = publ_w1,
+        height = publ_h1,
+        res = 200,
+        duration = 7,
+        renderer = av_renderer("figures/publ_co2.mp4"))
+```
+
+## Resumen:
+
+  - Para stories: - Dejar margenes superior e inferior de 250 px. Esto
+    es igual a aproximadamente 100 en la unidad de medida utilizada por
+    default. Margenes laterales en funcion a los labels. Relacion 1080 x
+    1920
+
+  - Para publicaciones: - relacion 1080 x 1080. Margenes 5.5 (en la
+    unidad de medida utilizada por default) y ajusto en caso de que los
+    labels me queden muy afuera
+
+  - res = 200
+
+  - nframes = 200?
+
+  - Para stories video duration 15 o mas.
+
+  - Para publicaciones hasta 30 seg.
