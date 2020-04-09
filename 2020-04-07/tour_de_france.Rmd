@@ -1,0 +1,168 @@
+---
+title: "Tidytuesday: Tour de France"
+author: Nicolas Stumberger
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r librerias, echo=FALSE}
+
+library(tidyverse)
+
+
+```
+
+
+### 1. Carga de datos
+
+```{r}
+
+tdf_winners <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_winners.csv')
+
+```
+
+### 2. EDA
+
+```{r}
+glimpse(tdf_winners)
+```
+```{r}
+skimr::skim(tdf_winners)
+```
+
+Me quiero quedar solo con algunas variables.
+Voy a deshacerme de las que tienen muchas NA o con las que no pienso trabajar:
+full_name
+nickname
+born
+birth_town
+birth_country
+died
+time_margin
+stage_wins
+stages_led
+
+```{r}
+tdf_winners <- tdf_winners %>% 
+        select(-full_name, 
+               -nickname, 
+               -born, 
+               -birth_town,
+               -birth_country, 
+               -died, 
+               -time_margin, 
+               -stage_wins, 
+               -stages_led)
+
+tdf_winners
+```
+
+Cual es la nacionalidad mas ganadora?
+```{r}
+g0 <- tdf_winners %>% 
+        group_by(nationality) %>% 
+        summarise(n_win = n()) %>% 
+        arrange(desc(n_win))
+```
+
+```{r}
+g0 %>% ggplot(aes(n_win, reorder(nationality, n_win))) +
+        geom_bar(stat = "identity") +
+        theme_minimal()
+        
+```
+
+Los ciclistas mas ganadores?
+
+```{r}
+tdf_winners %>% 
+        group_by(winner_name) %>% 
+        summarise(n_win = n()) %>% 
+        arrange(desc(n_win))
+```
+
+Y el equipo mas ganador?
+```{r}
+tdf_winners %>% 
+        group_by(winner_team) %>% 
+        summarise(n_win = n()) %>% 
+        arrange(desc(n_win))
+```
+
+Como variaron las distancias a lo largo de las ediciones?
+
+```{r}
+tdf_winners %>% 
+        ggplot(aes(start_date, distance)) +
+        geom_point(aes(color = nationality)) +
+        geom_smooth(se = FALSE, color = "grey80", alpha = 0.5)
+```
+
+Como varia la edad y el peso a lo largo de las ediciones?
+
+```{r}
+tdf_winners %>% 
+        ggplot(aes(start_date, age)) +
+        geom_point()
+```
+No veo ninguna tendencia
+
+```{r}
+tdf_winners %>% 
+        ggplot(aes(start_date, weight)) +
+        geom_point() +
+        geom_smooth()
+```
+Tampoco, nada para sacar de aca.
+
+```{r}
+tdf_winners %>% 
+        ggplot(aes(start_date, height)) +
+        geom_point() +
+        geom_smooth()
+```
+No es una tendencia muy clara, pero si podriamos decir que la altura minima y maxima, en los ultimos anos, fue subiendo.
+
+```{r}
+tdf_winners %>% 
+        ggplot(aes(start_date, time_overall)) +
+        geom_point()
+```
+Esto si bajo mucho, era de esperarse. Pero habria que calcularlo como ratio de la distancia...
+
+```{r}
+tdf_winners <- tdf_winners %>% 
+        mutate(time_per_km = time_overall/distance)
+
+tdf_winners %>% 
+        ggplot(aes(start_date, time_per_km)) +
+        geom_point() +
+        geom_smooth(se = FALSE, color = "grey70")
+```
+
+Este es un interesante dato, aunque esperable. El tiempo por km bajo. Podrian separarse en 3 etapas:
+de 1900 a 1960 aprox, donde disminuyo estrepitosamente. De 1960 a 2000 que bajo pero a un ritmo menor. Y de los 2000 a 2019 donde se mantuvo bastante estable (como que llego a un plateau)
+
+Habria que analizas mas en detalle los ultimos anos porque, a primera vista:
+a pesar de que desde el 2000 las distancias totales disminuyeron, los pesos promedio de los ganadores bajaron y las alturas promedio subieron, no hubo una gran ganancia de tiempo por km.
+
+Como calcularia la ganancia del tiempo promedio? Decada a decada? lustro a lustro?
+
+A priori, para hacer una visualizacion rapida para publicar, seria esta ultima.
+Pero luego haria zoom en la ultima decada para comparar: aumento promedio de altura, disminucion promedio de peso, disminucion de distancia total, pero sin una correlacion con la ganancia en los tiempos...
+
+
+
+### 3. Visaulizacion final
+
+
+
+
+
+
+
+
+
