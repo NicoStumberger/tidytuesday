@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 
-
 ```
 
 
@@ -105,6 +104,22 @@ Como varia la edad y el peso a lo largo de las ediciones?
 
 ```{r}
 tdf_winners %>% 
+        ggplot(aes(age)) +
+        geom_histogram(bins = 10)
+```
+
+```{r}
+tdf_winners %>% 
+        ggplot(aes(age)) +
+        geom_density(fill = "grey70", alpha = 0.5, color = "grey70")
+```
+Las edades mas comunes de los ganadores son entre 25 y 31 aprox.
+Podria destacar el ganador mas joven y el mas grande y en que anos.
+
+
+```{r}
+## edad
+tdf_winners %>% 
         ggplot(aes(start_date, age)) +
         geom_point()
 ```
@@ -112,11 +127,30 @@ No veo ninguna tendencia
 
 ```{r}
 tdf_winners %>% 
+        ggplot(aes(weight)) +
+        geom_density()
+```
+Los pesos mas comunes entre los ganadores son entre 65 y 76 kg aprox.
+El mas liviano en ganar y cuando? el mas pesado en ganar y cuando?
+
+
+```{r}
+## peso
+tdf_winners %>% 
         ggplot(aes(start_date, weight)) +
         geom_point() +
         geom_smooth()
 ```
 Tampoco, nada para sacar de aca.
+
+
+```{r}
+tdf_winners %>% 
+        ggplot(aes(height)) +
+        geom_density()
+```
+
+La altura fue cambiando a lo largo de las ediciones. Podria hacer un ridge geom?
 
 ```{r}
 tdf_winners %>% 
@@ -154,9 +188,32 @@ Como calcularia la ganancia del tiempo promedio? Decada a decada? lustro a lustr
 A priori, para hacer una visualizacion rapida para publicar, seria esta ultima.
 Pero luego haria zoom en la ultima decada para comparar: aumento promedio de altura, disminucion promedio de peso, disminucion de distancia total, pero sin una correlacion con la ganancia en los tiempos...
 
+Otras preguntas:
 
+Relacion entre peso y tiempo por km?
+Relacion entre altura y tiempo por km?
 
-### 3. Visaulizacion final
+```{r}
+tdf_winners %>% 
+        ggplot(aes(weight, time_per_km)) +
+        geom_point() +
+        geom_smooth()
+```
+
+```{r}
+tdf_winners %>% 
+        ggplot(aes(height, time_per_km)) +
+        geom_point() +
+        geom_smooth()
+```
+
+OK. Cual es la historia?
+
+### 3. Visaulizacion final: the story
+
+Comencé a hacer EDA según las recomendaciones de Hadley Wickham (R4DS).
+Primero, analizando cómo varían las variables y, luego, cómo varían los datos entre variables. Por lo menos los features en los que, a primera instancia, me parecieron más interesantes.
+
 
 
 

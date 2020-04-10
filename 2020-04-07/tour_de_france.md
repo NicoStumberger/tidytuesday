@@ -245,14 +245,46 @@ Como varia la edad y el peso a lo largo de las ediciones?
 
 ``` r
 tdf_winners %>% 
+        ggplot(aes(age)) +
+        geom_histogram(bins = 10)
+```
+
+![](tour_de_france_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+``` r
+tdf_winners %>% 
+        ggplot(aes(age)) +
+        geom_density(fill = "grey70", alpha = 0.5, color = "grey70")
+```
+
+![](tour_de_france_files/figure-gfm/unnamed-chunk-11-1.png)<!-- --> Las
+edades mas comunes de los ganadores son entre 25 y 31 aprox. Podria
+destacar el ganador mas joven y el mas grande y en que anos.
+
+``` r
+## edad
+tdf_winners %>% 
         ggplot(aes(start_date, age)) +
         geom_point()
 ```
 
-![](tour_de_france_files/figure-gfm/unnamed-chunk-10-1.png)<!-- --> No
+![](tour_de_france_files/figure-gfm/unnamed-chunk-12-1.png)<!-- --> No
 veo ninguna tendencia
 
 ``` r
+tdf_winners %>% 
+        ggplot(aes(weight)) +
+        geom_density()
+```
+
+    ## Warning: Removed 39 rows containing non-finite values (stat_density).
+
+![](tour_de_france_files/figure-gfm/unnamed-chunk-13-1.png)<!-- --> Los
+pesos mas comunes entre los ganadores son entre 65 y 76 kg aprox. El mas
+liviano en ganar y cuando? el mas pesado en ganar y cuando?
+
+``` r
+## peso
 tdf_winners %>% 
         ggplot(aes(start_date, weight)) +
         geom_point() +
@@ -265,8 +297,21 @@ tdf_winners %>%
 
     ## Warning: Removed 39 rows containing missing values (geom_point).
 
-![](tour_de_france_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](tour_de_france_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 Tampoco, nada para sacar de aca.
+
+``` r
+tdf_winners %>% 
+        ggplot(aes(height)) +
+        geom_density()
+```
+
+    ## Warning: Removed 40 rows containing non-finite values (stat_density).
+
+![](tour_de_france_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+La altura fue cambiando a lo largo de las ediciones. Podria hacer un
+ridge geom?
 
 ``` r
 tdf_winners %>% 
@@ -281,7 +326,7 @@ tdf_winners %>%
 
     ## Warning: Removed 40 rows containing missing values (geom_point).
 
-![](tour_de_france_files/figure-gfm/unnamed-chunk-12-1.png)<!-- --> No
+![](tour_de_france_files/figure-gfm/unnamed-chunk-16-1.png)<!-- --> No
 es una tendencia muy clara, pero si podriamos decir que la altura minima
 y maxima, en los ultimos anos, fue subiendo.
 
@@ -293,7 +338,7 @@ tdf_winners %>%
 
     ## Warning: Removed 8 rows containing missing values (geom_point).
 
-![](tour_de_france_files/figure-gfm/unnamed-chunk-13-1.png)<!-- --> Esto
+![](tour_de_france_files/figure-gfm/unnamed-chunk-17-1.png)<!-- --> Esto
 si bajo mucho, era de esperarse. Pero habria que calcularlo como ratio
 de la distancia…
 
@@ -313,7 +358,7 @@ tdf_winners %>%
 
     ## Warning: Removed 8 rows containing missing values (geom_point).
 
-![](tour_de_france_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](tour_de_france_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 Este es un interesante dato, aunque esperable. El tiempo por km bajo.
 Podrian separarse en 3 etapas: de 1900 a 1960 aprox, donde disminuyo
@@ -335,4 +380,46 @@ promedio de altura, disminucion promedio de peso, disminucion de
 distancia total, pero sin una correlacion con la ganancia en los
 tiempos…
 
-### 3\. Visaulizacion final
+Otras preguntas:
+
+Relacion entre peso y tiempo por km? Relacion entre altura y tiempo por
+km?
+
+``` r
+tdf_winners %>% 
+        ggplot(aes(weight, time_per_km)) +
+        geom_point() +
+        geom_smooth()
+```
+
+    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+    ## Warning: Removed 40 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 40 rows containing missing values (geom_point).
+
+![](tour_de_france_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+
+``` r
+tdf_winners %>% 
+        ggplot(aes(height, time_per_km)) +
+        geom_point() +
+        geom_smooth()
+```
+
+    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+    ## Warning: Removed 41 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 41 rows containing missing values (geom_point).
+
+![](tour_de_france_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+OK. Cual es la historia?
+
+### 3\. Visaulizacion final: the story
+
+Comencé a hacer EDA según las recomendaciones de Hadley Wickham (R4DS).
+Primero, analizando cómo varían las variables y, luego, cómo varían los
+datos entre variables. Por lo menos los features en los que, a primera
+instancia, me parecieron más interesantes.
