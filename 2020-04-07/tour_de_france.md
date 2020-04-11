@@ -180,6 +180,28 @@ g0 %>% ggplot(aes(n_win, reorder(nationality, n_win))) +
 
 ![](tour_de_france_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
+``` r
+g0
+```
+
+    ## # A tibble: 14 x 2
+    ##    nationality    n_win
+    ##    <chr>          <int>
+    ##  1  France           36
+    ##  2  Belgium          18
+    ##  3  Spain            12
+    ##  4  Italy            10
+    ##  5  United States    10
+    ##  6  Great Britain     6
+    ##  7  Luxembourg        5
+    ##  8   Switzerland      2
+    ##  9  Netherlands       2
+    ## 10  Australia         1
+    ## 11  Colombia          1
+    ## 12  Denmark           1
+    ## 13  Germany           1
+    ## 14  Ireland           1
+
 Los ciclistas mas ganadores?
 
 ``` r
@@ -231,10 +253,12 @@ tdf_winners %>%
 Como variaron las distancias a lo largo de las ediciones?
 
 ``` r
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(start_date, distance)) +
         geom_point(aes(color = nationality)) +
         geom_smooth(se = FALSE, color = "grey80", alpha = 0.5)
+
+g0
 ```
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
@@ -244,17 +268,21 @@ tdf_winners %>%
 Como varia la edad y el peso a lo largo de las ediciones?
 
 ``` r
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(age)) +
         geom_histogram(bins = 10)
+
+g0
 ```
 
 ![](tour_de_france_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ``` r
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(age)) +
         geom_density(fill = "grey70", alpha = 0.5, color = "grey70")
+
+g0
 ```
 
 ![](tour_de_france_files/figure-gfm/unnamed-chunk-11-1.png)<!-- --> Las
@@ -263,18 +291,22 @@ destacar el ganador mas joven y el mas grande y en que anos.
 
 ``` r
 ## edad
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(start_date, age)) +
         geom_point()
+
+g0
 ```
 
 ![](tour_de_france_files/figure-gfm/unnamed-chunk-12-1.png)<!-- --> No
 veo ninguna tendencia
 
 ``` r
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(weight)) +
         geom_density()
+
+g0
 ```
 
     ## Warning: Removed 39 rows containing non-finite values (stat_density).
@@ -285,10 +317,12 @@ liviano en ganar y cuando? el mas pesado en ganar y cuando?
 
 ``` r
 ## peso
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(start_date, weight)) +
         geom_point() +
         geom_smooth()
+
+g0
 ```
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
@@ -301,9 +335,11 @@ tdf_winners %>%
 Tampoco, nada para sacar de aca.
 
 ``` r
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(height)) +
         geom_density()
+
+g0
 ```
 
     ## Warning: Removed 40 rows containing non-finite values (stat_density).
@@ -314,10 +350,12 @@ La altura fue cambiando a lo largo de las ediciones. Podria hacer un
 ridge geom?
 
 ``` r
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(start_date, height)) +
         geom_point() +
         geom_smooth()
+
+g0
 ```
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
@@ -331,9 +369,11 @@ es una tendencia muy clara, pero si podriamos decir que la altura minima
 y maxima, en los ultimos anos, fue subiendo.
 
 ``` r
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(start_date, time_overall)) +
         geom_point()
+
+g0
 ```
 
     ## Warning: Removed 8 rows containing missing values (geom_point).
@@ -346,10 +386,12 @@ de la distancia…
 tdf_winners <- tdf_winners %>% 
         mutate(time_per_km = time_overall/distance)
 
-tdf_winners %>% 
+g0 <- tdf_winners %>% 
         ggplot(aes(start_date, time_per_km)) +
         geom_point() +
         geom_smooth(se = FALSE, color = "grey70")
+
+g0
 ```
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
