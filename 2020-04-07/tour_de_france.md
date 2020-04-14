@@ -462,6 +462,54 @@ OK. Cual es la historia?
 ### 3\. Visaulizacion final: the story
 
 Comencé a hacer EDA según las recomendaciones de Hadley Wickham (R4DS).
-Primero, analizando cómo varían las variables y, luego, cómo varían los
-datos entre variables. Por lo menos los features en los que, a primera
-instancia, me parecieron más interesantes.
+Primero, indagando los datos y analizando cómo varían en y entre las
+variables que me parecieron más interesantes.
+
+#### Algunas exploraciones iniciales
+
+##### Nacionalidad
+
+En las 106 ediciones con las que cuenta el dataset, la nacionalidad más
+ganadora, como era de espararse, es Francia, con 36 trofeos. La segunda
+nacionalidad es Bélgica con la mitad de primeros puestos.
+
+``` r
+g0 <- tdf_winners %>% 
+        group_by(nationality) %>% 
+        summarise(n_win = n()) %>% 
+        arrange(desc(n_win))
+
+
+g0 %>% 
+        ggplot(aes(n_win, reorder(nationality, n_win))) + 
+        geom_col()
+```
+
+![](tour_de_france_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+
+##### Edad
+
+Si bien el rango etario de los ganadores va desde … a los …, las edades
+victoriosas más comunes son entre 25 y 32 años.
+
+``` r
+tdf_winners %>% 
+        ggplot(aes(age)) +
+        geom_density()
+```
+
+![](tour_de_france_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+El ciclista más joven en ganar la competencia fue … , con apenas 19
+años. Por otro lado, el deportista más experimantado en quedar en
+primer lugar fue …, con … años.
+
+##### Peso
+
+#### Tiempo
+
+##### Tiempo total
+
+##### Distancia total
+
+##### Tiempo por km
