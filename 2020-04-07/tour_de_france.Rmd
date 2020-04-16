@@ -260,26 +260,52 @@ Si bien el rango etario de los ganadores va desde ... a los ..., las edades vict
 tdf_winners %>% 
         ggplot(aes(age)) +
         geom_density()
+
+
+?geom_ribbon()
 ```
 
 El ciclista más joven en ganar la competencia fue ... , con apenas 19 años. Por otro lado, el deportista más experimantado en quedar en primer lugar fue ..., con ... años.
 
 ##### Peso
 
+```{r}
+tdf_winners %>% 
+        ggplot(aes(weight)) +
+        geom_density()
+```
+
 #### Tiempo
 
 ##### Tiempo total
 
+```{r}
+tdf_winners %>% 
+        ggplot(aes(edition, time_overall)) +
+        geom_point()
+```
+
 ##### Distancia total
+
+```{r}
+tdf_winners %>% 
+        ggplot(aes(edition, distance)) +
+        geom_point()
+```
 
 ##### Tiempo por km
 
 ```{r}
-
-
-
+tdf_winners %>% 
+        ggplot(aes(edition, time_per_km)) +
+        geom_point()
 ```
 
+```{r}
+tdf_winners %>% 
+        ggplot(aes(time_per_km, distance)) +
+        geom_poin()
+```
 
 
 
