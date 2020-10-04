@@ -4,6 +4,10 @@ library(viridis)
 library(hrbrthemes)
 library(lubridate)
 library(ggrepel)
+library(extrafont)
+loadfonts(device = "win")
+library(hrbrthemes)
+
 
 # Get the Data
 
@@ -79,7 +83,7 @@ top_peaks_by_month <- members_height %>%
         filter(success == "TRUE") %>%
         group_by(month, peak_name) %>%
         summarise(n = n()) %>%
-        slice_max(n = 1, order_by = n) %>% 
+        slice_max(n = 3, order_by = n) %>% 
         left_join(peaks_heigth)
 
 
@@ -98,13 +102,20 @@ top_peaks_by_month <- members_height %>%
 #c1c5d6 celeste
 #787fa0 azul
 
-color_fondo <- "#c1c5d6"
-color_titulo <- "#5a5b62"
-color_dens_low <- "#787fa0"
-color_dens_high <- "#ebecf0"
+
+#000010 negro
+#4b5354 gris
+#275ea3 azul
+#9ecfe7 celeste
+#e9edef gris claro
+
+color_fondo <- "#e9edef"
+color_titulo <- "#275ea3"
+color_dens_low <- "#275ea3"
+color_dens_high <- "white"
 
 # Most succeded peaks by month
-members_height %>%
+himalaya_ridge <- members_height %>%
         filter(!is.na(month)) %>%
         filter(success == "TRUE") %>%
         ggplot(aes(
@@ -112,29 +123,55 @@ members_height %>%
                 y = reorder(month, desc(month)),
                 fill = ..x..
         )) +
-        geom_density_ridges_gradient(scale = 3, 
+        geom_density_ridges_gradient(scale = 2, 
                                      rel_min_height = 0.01, 
                                      color = color_dens_high) +
         scale_fill_gradient(low = color_dens_low, high = color_dens_high) +
         # scale_fill_distiller(name = "Height") +
-        geom_text_repel(data = top_peaks_by_month,
+        geom_text_repel(data = top_peaks_by_month, nudge_y = 1,
                   aes(height_metres, month, label = peak_name)) +
         # scale_fill_viridis(name = "Height", option = "C") +
-        theme_ipsum() +
+        scale_x_continuous(limits = c(5500, 9300)) +
+        theme_dark() +
         theme(panel.grid.minor = element_blank(),
               panel.grid.major = element_blank(),
               panel.grid.major.y = element_blank(),
               legend.position = "none", 
+              axis.text = element_text(color = color_titulo, size = 30),
+              axis.title.x = element_text(colour = color_titulo, size = 30, hjust = 1),
               panel.background = element_rect(fill = color_fondo, 
                                               color = color_fondo),
               plot.background = element_rect(fill = color_fondo, 
                                              color = color_fondo),
-              title = element_text(color = color_titulo)) +
-        labs(title = "Most popular succeded Himalayean Peaks by month",
-             subtitle = "Distribution of climbers that succeded in Himalayean expedition",
-             x = "Heigth in metres",
+              plot.title = element_text(color = color_titulo, 
+                                   size = 50, 
+                                   hjust = 0,
+                                   vjust = 1,
+                                   margin = margin(100,1,1,1)),
+              plot.subtitle = element_text(color = color_titulo, 
+                                           size = 30, 
+                                           hjust = 0,
+                                           vjust = 1,
+                                           margin = margin(1,1,10,1)
+                                           )
+                                           ) +
+        labs(title = "Most popular succeded Himalayean Peaks",
+             subtitle = "by month",
+             x = "Height in metres",
              y = "")
 
+himalaya_ridge
+
+ggsave(
+        himalaya_ridge,
+        filename = "2020-09-29/plots/himalaya.jpg",
+        width = 20,
+        height = 20,
+        dpi = "screen",
+        # esto permite renderizar extrafonts en pdf
+        device = "jpeg"
+)
+                                
 
 
 
